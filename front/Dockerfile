@@ -1,35 +1,54 @@
-# 1. Node.js の公式イメージを使用
-FROM node:20-alpine AS builder
+# 1. AlmaLinux 9 をベースイメージにする
+FROM almalinux:9 AS builder
 
-# 2. 作業ディレクトリの作成
+# 2. 必要なパッケージをインストール
+RUN dnf install -y \
+    epel-release \
+    dnf-plugins-core && \
+    dnf module enable -y nodejs:20 && \
+    dnf install -y nodejs npm && \
+    dnf clean all
+
+# 3. 作業ディレクトリを作成
 WORKDIR /app
 
-# 3. package.json と package-lock.json をコピー
+# 4. package.json と package-lock.json をコピー
 COPY package.json package-lock.json ./
 
-# 4. 依存関係をインストール
+# 5. 依存関係をインストール
 RUN npm install
 
-# 5. ソースコードをコピー
+# 6. ソースコードをコピー
 COPY . .
 
-# 6. Next.js をビルド
+# 7. Next.js をビルド
 RUN npm run build
 
-# 7. 本番環境用の軽量な Node.js イメージを使用
-FROM node:20-alpine
+# 8. 本番環境用の AlmaLinux イメージ
+FROM almalinux:9
 
-# 8. 環境変数設定
+# 9. Node.js をインストール
+RUN dnf install -y \
+    epel-release \
+    dnf-plugins-core && \
+    dnf module enable -y nodejs:20 && \
+    dnf install -y nodejs npm && \
+    dnf clean all
+
+# 10. 環境変数設定
 ENV NODE_ENV=production
 
-# 9. 作業ディレクトリを作成
+# 11. 作業ディレクトリを作成
 WORKDIR /app
 
-# 10. 必要なファイルをコピー
+# 12. 必要なファイルをコピー
 COPY --from=builder /app/package.json /app/package-lock.json ./
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/node_modules ./node_modules
 
-# 11. サーバーを起動
+# 13. ポートを開放（Next.js のデフォルトポート 3000）
+EXPOSE 3000
+
+# 14. サーバーを起動
 CMD ["npm", "start"]
