@@ -1,5 +1,11 @@
-# 1. AlmaLinux 9 をベースイメージにする
-FROM almalinux:9 AS builder
+FROM almalinux:9
+LABEL maintainer="Soushi Arakawa <soushi@ageet.com>"
+
+
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
+RUN echo ${NEXT_PUBLIC_API_URL}
 
 RUN dnf -y install epel-release && \
     dnf config-manager --set-enabled crb && \

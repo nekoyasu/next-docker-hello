@@ -1,11 +1,28 @@
 version: "3.8"
 
 services:
+  # front:
+  #   build:
+  #     context: ./front
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NODE_ENV=production
+
   front:
     build:
       context: ./front
-      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${API_URL}:${API_PORT}${API_PREFIX}
+    image: 131228455886.dkr.ecr.ap-northeast-1.amazonaws.com/ip-pbx-admin/front:latest
     ports:
-      - "3000:3000"
+      - "${FRONT_PORT:-3000}:3000"
     environment:
       - NODE_ENV=production
+    container_name: front
+    hostname: front
+    networks:
+      - api-net
+networks:
+  api-net:
